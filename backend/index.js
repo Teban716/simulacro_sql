@@ -2,6 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const csv = require("csv-parser");
 const fs = require("fs");
+const uploadService = require("./services/upload_service");
 
 const app = express();
 const port = 3000;
@@ -20,15 +21,17 @@ app.post("/api/citas/bulk-import", upload.single("csvFile"), (req, res) => {
   fs.createReadStream(filePath)
     .pipe(csv())
     .on("data", (data) => results.push(data))
-    .on("end", () => {
+    .on("end", async () => {
       // Elimina el archivo subido después de procesarlo
       fs.unlinkSync(filePath);
 
-      // Aquí `results` es la lista de objetos JS con los datos del CSV
-      console.log(results);
-      res
-        .status(200)
-        .json({ message: "Archivo procesado con éxito", data: results });
+      let processor = new uploadService();
+      let normalizedResults = await processor.processCSVData(results);
+
+      res.status(200).json({
+        message: "Archivo procesado con éxito",
+        data: normalizedResults,
+      });
     });
 });
 
