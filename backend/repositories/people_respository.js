@@ -10,6 +10,10 @@ class PeopleRepository {
         `;
 
     for (const person of people) {
+      if (!person) {
+        continue;
+      }
+
       await this.client.query(insertQuery, [
         person.id_persona,
         person.nombres,
